@@ -2,6 +2,11 @@
 *.proof
 node_modules/
 
+# homepage-next (Next.js) build artifacts -- next build writes into out/,
+# which is then synced into site/ (committed) as the actual deploy source
+homepage-next/.next/
+homepage-next/out/
+
 # contracts/ (Foundry)
 contracts/out/
 contracts/cache/
