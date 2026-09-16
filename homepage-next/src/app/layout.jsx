@@ -3,6 +3,22 @@ import Nav from '../components/Nav';
 import Footer from '../components/Footer';
 import './globals.css';
 
+// A single, site-wide Organization entity (as opposed to the `author`
+// references nested inside individual TechArticle/BlogPosting JSON-LD
+// blocks elsewhere) -- real fields only. foundingDate is the actual first
+// commit date in this repo's git history, not an invented one. No `logo`
+// field: there's no hosted logo image URL to point to yet, and a fabricated
+// or broken one would fail structured-data validation worse than omitting
+// it entirely.
+const ORGANIZATION_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'zkvm.host',
+  url: 'https://www.zkvm.host/',
+  foundingDate: '2026-08-31',
+  sameAs: ['https://github.com/CodesbyFebin/rust-stark-zkvm'],
+};
+
 // Every page below sets metadata.title as the full "<Title> — zkvm.host"
 // string directly rather than relying on Next's title.template merging --
 // that mechanism did not reliably apply to the <title> tag in this
@@ -27,6 +43,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="min-h-screen bg-black text-gray-200 font-sans overflow-x-hidden">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_JSON_LD) }}
+        />
         <MatrixRain />
 
         <div

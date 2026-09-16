@@ -2,281 +2,340 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.zkvm.host/</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/getting-started</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/architecture</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/zkasm-spec</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/api-reference</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/mcp</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/roadmap</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/threat-model</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/onchain-verifier</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/contracts</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/ci</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/recursion</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/contributing</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/security</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/cli-reference</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/examples</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/changelog</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/grant-pitch</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/capabilities</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/features</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/playground</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/benchmarks</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/faq</loc>
+    <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/dashboard/</loc>
+    <lastmod>2026-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/depin/</loc>
+    <lastmod>2026-08-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/funding/</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/blog/</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/blog/no-secret-witness/</loc>
+    <lastmod>2026-09-01</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/blog/registers-without-a-mux/</loc>
+    <lastmod>2026-09-01</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/blog/why-not-sp1/</loc>
+    <lastmod>2026-09-01</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/blog/winterfell-degree-bug/</loc>
+    <lastmod>2026-09-01</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/blog/loops-are-hard/</loc>
+    <lastmod>2026-09-01</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/blog/onchain-trust-bridge/</loc>
+    <lastmod>2026-09-01</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/blog/hardening-a-prover-api/</loc>
+    <lastmod>2026-09-01</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/blog/the-public-inputs-footgun/</loc>
+    <lastmod>2026-09-01</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/blog/mcp-meets-stark/</loc>
+    <lastmod>2026-09-01</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/blog/sub-10ms-verify/</loc>
+    <lastmod>2026-09-01</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/blog/zkvm-host-vs-the-repo/</loc>
+    <lastmod>2026-09-01</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/blog/the-trust-boundary/</loc>
+    <lastmod>2026-09-01</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/blog/proof-as-a-ci-check/</loc>
+    <lastmod>2026-09-01</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/blog/testing-an-onchain-orchestrator/</loc>
+    <lastmod>2026-09-01</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/blog/reading-a-winterfell-air/</loc>
+    <lastmod>2026-09-01</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/glossary/</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/glossary/zkvm/</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/glossary/stark/</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/glossary/snark/</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/glossary/air/</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/glossary/execution-trace/</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/glossary/transition-constraint/</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/glossary/boundary-constraint/</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/glossary/fri/</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/glossary/winterfell/</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/glossary/witness/</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/glossary/no-secret-witness/</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/glossary/one-hot-selector/</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/glossary/prover/</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/glossary/verifier/</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/glossary/attestation/</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.zkvm.host/glossary/mcp/</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>

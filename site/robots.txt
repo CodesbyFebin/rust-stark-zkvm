@@ -1,4 +1,25 @@
 User-agent: *
 Allow: /
 
+# The wildcard rule above already allows every crawler, including these --
+# listed explicitly because some audits and operators check for the
+# specific token rather than trusting a wildcard.
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
 Sitemap: https://www.zkvm.host/sitemap.xml

@@ -12,7 +12,7 @@ const JSON_LD = {
 };
 
 const TITLE = 'On-Chain Verifier Requirements — zkvm.host';
-const DESCRIPTION = 'The five real pieces a trustless on-chain STARK verifier needs, why porting one to Solidity is a large undertaking, and the SNARK-wrapping path production systems actually take instead.';
+const DESCRIPTION = 'The five real pieces a trustless on-chain STARK verifier needs, and the SNARK-wrapping path production systems take instead of building one from scratch.';
 
 export const metadata = {
   title: TITLE,

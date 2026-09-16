@@ -12,7 +12,7 @@ const JSON_LD = {
 };
 
 const TITLE = 'MCP Server — zkvm.host';
-const DESCRIPTION = 'The real prove and verify MCP tools on port 4478 -- exact input schemas and why they run separately from the HTTP API.';
+const DESCRIPTION = 'The real prove and verify MCP tools on port 4478, verified with a real initialize -> tools/list -> tools/call handshake, run separately from the HTTP API.';
 
 export const metadata = {
   title: TITLE,
