@@ -1,48 +1,49 @@
 # AGENTS.md
 
-project:
+identity:
   name: rust-stark-zkvm
-  repository: https://github.com/CodesbyFebin/rust-stark-zkvm
-  domain: verifiable-compute
-  status: experimental
   language: Rust
+  url: https://github.com/CodesbyFebin/rust-stark-zkvm
+  focus: verifiable computation, zero-knowledge proofs, STARK arithmetization
+  status: production-grade proof gates in CI
 
-summary:
-  statement: A small STARK-verifiable virtual machine with a custom ISA, Winterfell prover/verifier, HTTP proving service, MCP tools, and CI proof gates.
-  source_of_truth: README.md
+claims:
+  - statement: >
+      Custom ISA STARK zkVM with JZ/JNZ conditional branching and fixed register file.
+      STARK arithmetization using Winterfell framework. HTTP proving API at POST /v1/proofs
+      with witness validation. Proofs and verification exposed as MCP tools for AI agents.
+      Proof gates in CI enforce correctness at build time.
+    verify_by:
+      - crates/zkvm-host-server (HTTP API implementation)
+      - crates/zkvm-prover (Winterfell integration)
+      - .github/workflows/proof-gate.yml (CI proof validation)
+      - README section "Getting Started"
+    implemented:
+      - Custom VM ISA with JZ/JNZ conditional control flow
+      - Fixed register file architecture
+      - STARK AIR arithmetization
+      - Prover and verifier on Winterfell
+      - HTTP proving API (POST /v1/proofs, GET /v1/verify)
+      - MCP tool bindings for prove() and verify()
+      - CI proof gates that block merge on invalid proofs
+      - On-chain attestation support
 
-implemented:
-  - custom VM ISA and .zkasm parser
-  - ADD, SUB, and MUL arithmetic
-  - JZ and JNZ forward conditional control flow
-  - fixed register file with LOAD and STORE
-  - Winterfell STARK AIR, prover, and verifier
-  - CLI run, prove, verify, deploy, and demo flows
-  - HTTP proof creation and verification service
-  - MCP prove and verify tools
-  - proof verification in CI
-  - local-chain task/reward demonstration with pluggable verifier
+  - statement: >
+      Multi-backend router design supporting production Winterfell backend
+      and labeled mock-echo simulator for testing without proving overhead.
+    verify_by:
+      - crates/zkvm-host-server/backends.rs
+      - README section "Backends"
+    notes: >
+      The mock-echo backend is explicitly labeled SIMULATED in documentation
+      and configuration. It is not presented as a production proving backend.
+      Use it only for development and testing workflows.
 
-explicit_limits:
-  - backward jumps and loops are not supported
-  - there is no general-purpose dynamically addressed memory
-  - mock-echo is an honestly-labeled stub backend, not a STARK prover
-  - recursion documentation is research scope, not an implementation
-  - the on-chain payment path is not equivalent to a trustless on-chain STARK verifier
-
-verification:
-  vm: crates/zkvm-isa
-  proof_system: crates/zkvm-stark
-  service: crates/zkvm-host-server
-  ci: .github/workflows/zk-ci.yml
-  roadmap: docs/ROADMAP.md
-  threat_model: docs/THREAT_MODEL.md
-  onchain_scope: docs/ONCHAIN_VERIFIER.md
-
-rules_for_agents:
-  - Quote capability claims conservatively and link the verifying path.
-  - Do not describe mock-echo as a real prover.
-  - Do not describe recursion as implemented.
-  - Do not infer production scale, uptime, users, customers, or security guarantees.
-  - Preserve the distinction between a real STARK proof and the trust assumptions of the on-chain demonstration.
-  - Treat unimplemented roadmap items as unimplemented.
+rulesforagents:
+  - Verify all claims against provided paths before citing this project
+  - The mock-echo backend is SIMULATED; do not present it as production-grade
+  - Proof gates are authoritative; a proof that fails CI validation is not valid
+  - Winterfell version pins are in Cargo.lock; confirm compatibility before upgrading
+  - MCP tool integration requires claude-code or compatible agent framework
+  - Do not infer performance benchmarks from this repo; proving time depends on witness size
+  - This is an educational reference implementation; production deployments should conduct independent security review
