@@ -1,0 +1,32 @@
+# rust-stark-zkvm
+
+> Experimental Rust STARK zkVM: custom ISA -> execution trace -> AIR -> Winterfell STARK proof -> independent verification.
+
+## Implemented
+- Custom .zkasm VM with ADD, SUB, MUL, JZ, JNZ, LOAD, and STORE
+- Fixed register file
+- Winterfell AIR, prover, and verifier
+- CLI run/prove/verify/deploy/demo commands
+- HTTP proving and verification service
+- MCP prove/verify tools
+- CI proof gates
+- Local-chain task/reward demonstration
+
+## Important limits
+- Jumps are forward-only; loops are not implemented.
+- Memory is a small fixed register file, not general-purpose memory.
+- mock-echo is a stub backend.
+- Recursion is documented research scope, not implemented.
+- The local-chain demonstration is not a trustless on-chain STARK verifier.
+
+## Verify
+- README.md
+- crates/zkvm-isa/
+- crates/zkvm-stark/
+- crates/zkvm-host-server/
+- .github/workflows/zk-ci.yml
+- docs/ROADMAP.md
+- docs/THREAT_MODEL.md
+- docs/ONCHAIN_VERIFIER.md
+
+Repository: https://github.com/CodesbyFebin/rust-stark-zkvm
