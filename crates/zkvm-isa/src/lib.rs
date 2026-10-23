@@ -249,10 +249,15 @@ fn collect_labels(body: &[&str]) -> Result<HashMap<String, u64>, String> {
     Ok(labels)
 }
 
-fn resolve_target(token: &str, labels: &HashMap<String, u64>, _from: u64) -> Result<u64, String> {
+fn resolve_target(token: &str, labels: &HashMap<String, u64>, from: u64) -> Result<u64, String> {
     let target = *labels
         .get(token)
         .ok_or_else(|| format!("undefined label: {token}"))?;
+    if target <= from {
+        return Err(format!(
+            "backward or self jump to '{token}' (target {target} <= instruction {from}): only forward jumps are supported"
+        ));
+    }
     Ok(target)
 }
 
@@ -275,7 +280,6 @@ fn parse_init_line(line: &str) -> Result<u64, String> {
 /// *before* this row's instruction would apply.
 #[derive(Debug, Clone, Copy)]
 pub struct Row {
-    pub pc: BaseElement,
     pub acc: BaseElement,
     pub registers: [BaseElement; NUM_REGISTERS],
     pub s_add: BaseElement,
@@ -318,19 +322,12 @@ pub fn execute(program: &Program) -> ExecutionTrace {
     let mut registers = [BaseElement::ZERO; NUM_REGISTERS];
     let mut pc: u64 = 0;
     let mut rows = Vec::with_capacity(program.instructions.len());
-    let max_cycles = 1_048_576;
-    let mut cycles = 0;
 
-    while pc < len {
-        if cycles >= max_cycles {
-            panic!("execution exceeded max cycles ({})", max_cycles);
-        }
-
-        let instr = program.instructions[pc as usize];
+    for (i, instr) in program.instructions.iter().enumerate() {
+        let i = i as u64;
+        let active = pc == i;
         let sel = instr.selectors();
-
         rows.push(Row {
-            pc: BaseElement::from(pc),
             acc,
             registers,
             s_add: sel.s_add,
@@ -342,59 +339,39 @@ pub fn execute(program: &Program) -> ExecutionTrace {
             s_store: sel.s_store,
             right: sel.right,
             reg_sel: sel.reg_sel,
-            active: BaseElement::ONE,
-        });
-
-        let is_zero = acc == BaseElement::ZERO;
-        let branch_taken = match instr {
-            Instruction::Jz(_) => is_zero,
-            Instruction::Jnz(_) => !is_zero,
-            _ => false,
-        };
-        if instr.is_branch() {
-            pc = if branch_taken {
-                instr.immediate()
+            active: if active {
+                BaseElement::ONE
             } else {
-                pc + 1
-            };
-        } else {
-            match instr {
-                Instruction::Add(_) => acc += sel.right,
-                Instruction::Sub(_) => acc -= sel.right,
-                Instruction::Mul(_) => acc *= sel.right,
-                Instruction::Load(r) => acc = registers[r as usize],
-                Instruction::Store(r) => registers[r as usize] = acc,
-                Instruction::Jz(_) | Instruction::Jnz(_) => unreachable!(),
-            };
-            pc += 1;
-        }
-
-        cycles += 1;
-        debug_assert!(pc <= len, "jump target must stay within the program");
-    }
-
-    // Pad the trace to a power of two with inactive Add(0) rows,
-    // ensuring the length is at least 8 (Winterfell's minimum trace length).
-    let target_len = rows.len().max(8).next_power_of_two();
-    let padding_instr = Instruction::Add(0);
-    let sel = padding_instr.selectors();
-    while rows.len() < target_len {
-        rows.push(Row {
-            pc: BaseElement::from(pc),
-            acc,
-            registers,
-            s_add: sel.s_add,
-            s_sub: sel.s_sub,
-            s_mul: sel.s_mul,
-            s_jz: sel.s_jz,
-            s_jnz: sel.s_jnz,
-            s_load: sel.s_load,
-            s_store: sel.s_store,
-            right: sel.right,
-            reg_sel: sel.reg_sel,
-            active: BaseElement::ZERO,
+                BaseElement::ZERO
+            },
         });
-        pc += 1;
+
+        if active {
+            let is_zero = acc == BaseElement::ZERO;
+            let branch_taken = match instr {
+                Instruction::Jz(_) => is_zero,
+                Instruction::Jnz(_) => !is_zero,
+                _ => false,
+            };
+            if instr.is_branch() {
+                pc = if branch_taken {
+                    instr.immediate()
+                } else {
+                    i + 1
+                };
+            } else {
+                match instr {
+                    Instruction::Add(_) => acc += sel.right,
+                    Instruction::Sub(_) => acc -= sel.right,
+                    Instruction::Mul(_) => acc *= sel.right,
+                    Instruction::Load(r) => acc = registers[*r as usize],
+                    Instruction::Store(r) => registers[*r as usize] = acc,
+                    Instruction::Jz(_) | Instruction::Jnz(_) => unreachable!(),
+                };
+                pc = i + 1;
+            }
+        }
+        debug_assert!(pc <= len, "jump target must stay within the program");
     }
 
     ExecutionTrace { rows, result: acc }
@@ -417,8 +394,9 @@ mod tests {
         );
         let trace = execute(&program);
         assert_eq!(trace.result, BaseElement::from(12u64));
-        assert_eq!(trace.rows.len(), 8);
+        assert_eq!(trace.rows.len(), 3);
         assert_eq!(trace.rows[0].acc, BaseElement::from(5u64));
+        assert!(trace.rows.iter().all(|r| r.active == BaseElement::ONE));
     }
 
     #[test]
@@ -431,8 +409,9 @@ mod tests {
     #[test]
     fn padding_preserves_result() {
         let program = Program::new(1, vec![Instruction::Add(1), Instruction::Add(1)]);
-        let trace = execute(&program);
-        assert_eq!(trace.rows.len(), 8); // Winterfell's minimum trace length
+        let padded = program.padded();
+        assert_eq!(padded.instructions.len(), 8); // Winterfell's minimum trace length
+        let trace = execute(&padded);
         assert_eq!(trace.result, BaseElement::from(3u64)); // no-op padding doesn't change the result
     }
 
@@ -452,10 +431,8 @@ mod tests {
         let program = Program::parse("INIT 0\nJZ skip\nMUL 100\nskip:\nADD 7\n").unwrap();
         let trace = execute(&program);
         assert_eq!(trace.result, BaseElement::from(7u64));
-        // Since we execute dynamically now, the MUL instruction is just never
-        // executed. So the row 1 is the ADD instruction, which is active.
-        assert_eq!(trace.rows[1].s_add, BaseElement::ONE);
-        assert_eq!(trace.rows[1].active, BaseElement::ONE);
+        // the MUL row (index 1) must be inactive -- it was jumped over
+        assert_eq!(trace.rows[1].active, BaseElement::ZERO);
     }
 
     #[test]
@@ -486,15 +463,10 @@ mod tests {
     }
 
     #[test]
-    fn test_loop_execution() {
-        // A simple loop that counts down from 3 to 0.
-        // INIT 3; loop: SUB 1; JNZ loop => 0
-        let program = Program::parse("INIT 3\nloop:\nSUB 1\nJNZ loop\n").unwrap();
-        let trace = execute(&program);
-        assert_eq!(trace.result, BaseElement::from(0u64));
-
-        // trace is padded to next power of 2: 8
-        assert_eq!(trace.rows.len(), 8);
+    fn rejects_backward_jump() {
+        // "back:" is defined before the JZ that targets it -- not allowed.
+        let err = Program::parse("INIT 0\nback:\nADD 1\nJZ back\n").unwrap_err();
+        assert!(err.contains("forward"), "unexpected error: {err}");
     }
 
     #[test]

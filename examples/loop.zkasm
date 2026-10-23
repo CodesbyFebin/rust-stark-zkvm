@@ -1,5 +1,0 @@
-# Computes a countdown from 10 down to 0 using a backward loop.
-INIT 10
-_loop:
-SUB 1
-JNZ _loop

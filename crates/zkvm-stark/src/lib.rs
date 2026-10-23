@@ -35,12 +35,12 @@ pub use winterfell::{Proof, VerifierError};
 
 use zkvm_isa::{ExecutionTrace, Program, Row, NUM_REGISTERS};
 
-/// Column layout: pc; accumulator; seven one-hot opcode selectors
+/// Column layout: accumulator; seven one-hot opcode selectors
 /// (add/sub/mul/jz/jnz/load/store); the shared immediate/target/register
 /// operand; the "did this row actually run" flag; `NUM_REGISTERS` one-hot
 /// "which register does a load/store address" selectors; `NUM_REGISTERS`
 /// register value columns.
-const FIXED_COLUMNS: usize = 11; // pc, acc, 7 selectors, right, active
+const FIXED_COLUMNS: usize = 10; // acc, 7 selectors, right, active
 const TRACE_WIDTH: usize = FIXED_COLUMNS + 2 * NUM_REGISTERS;
 const REG_SEL_BASE: usize = FIXED_COLUMNS;
 const REG_BASE: usize = FIXED_COLUMNS + NUM_REGISTERS;
@@ -52,7 +52,6 @@ const REG_BASE: usize = FIXED_COLUMNS + NUM_REGISTERS;
 /// exactly the kind of thing that's easy to transpose by accident.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ProgramRow {
-    pub pc: BaseElement,
     pub s_add: BaseElement,
     pub s_sub: BaseElement,
     pub s_mul: BaseElement,
@@ -68,7 +67,6 @@ pub struct ProgramRow {
 impl From<&Row> for ProgramRow {
     fn from(row: &Row) -> Self {
         ProgramRow {
-            pc: row.pc,
             s_add: row.s_add,
             s_sub: row.s_sub,
             s_mul: row.s_mul,
@@ -101,7 +99,6 @@ impl ToElements<BaseElement> for PublicInputs {
         let mut elements = vec![self.initial, self.result];
         for row in &self.program {
             elements.extend_from_slice(&[
-                row.pc,
                 row.s_add,
                 row.s_sub,
                 row.s_mul,
@@ -170,11 +167,11 @@ impl Air for VmAir {
         // case (e.g. `active * s_mul * acc * right`) -- see the comment on
         // `evaluate_transition` for why the *actual* degree is data-dependent
         // and why that's fine.
-        let degrees = vec![TransitionConstraintDegree::new(4); 2 + NUM_REGISTERS];
+        let degrees = vec![TransitionConstraintDegree::new(4); 1 + NUM_REGISTERS];
         // Every row asserts ASSERTED_COLUMNS_PER_ROW columns, plus the
-        // accumulator's two endpoints, plus each register starting at zero, plus pc initial zero.
+        // accumulator's two endpoints, plus each register starting at zero.
         let num_assertions =
-            3 + NUM_REGISTERS + ASSERTED_COLUMNS_PER_ROW * pub_inputs.program.len();
+            2 + NUM_REGISTERS + ASSERTED_COLUMNS_PER_ROW * pub_inputs.program.len();
 
         VmAir {
             context: AirContext::new(trace_info, degrees, num_assertions, options),
@@ -197,62 +194,54 @@ impl Air for VmAir {
         let current = frame.current();
         let next = frame.next();
 
-        let pc = current[0];
-        let acc = current[1];
-        let s_add = current[2];
-        let s_sub = current[3];
-        let s_mul = current[4];
-        let s_jz = current[5];
-        let s_jnz = current[6];
-        let s_load = current[7];
-        let s_store = current[8];
-        let right = current[9];
-        let active = current[10];
+        let acc = current[0];
+        let s_add = current[1];
+        let s_sub = current[2];
+        let s_mul = current[3];
+        let s_jz = current[4];
+        let s_jnz = current[5];
+        let s_load = current[6];
+        let s_store = current[7];
+        let right = current[8];
+        let active = current[9];
         let reg_sel = &current[REG_SEL_BASE..REG_SEL_BASE + NUM_REGISTERS];
         let registers = &current[REG_BASE..REG_BASE + NUM_REGISTERS];
+        let next_acc = next[0];
 
-        let next_pc = next[0];
-        let next_acc = next[1];
-
-        // Every column but `pc`, `acc` and the registers is independently asserted
+        // Every column but `acc` and the registers is independently asserted
         // per row (see `get_assertions`), so this is the only thing that
         // needs an algebraic check: does the accumulator evolve consistently
         // with the (already known-correct) opcode/active/reg_sel values for
         // this row. `LOAD` reads whichever register `reg_sel` (one-hot)
         // picks out; `JZ`/`JNZ`/`STORE` don't touch the accumulator at all,
         // so their contribution is just `acc` (a no-op), same as inactive.
-        // "Constraint-Native ISA" Insight 1 implementation: dynamically compose constraints
-        // based ONLY on the opcodes actually used in the program. This avoids evaluating
-        // every possible opcode branch per row.
+        let loaded = reg_sel
+            .iter()
+            .zip(registers.iter())
+            .fold(E::ZERO, |sum, (&sel, &val)| sum + sel * val);
 
-        let mut ops_present = [false; 7];
-        for row in &self.program {
-            if row.s_add != BaseElement::ZERO { ops_present[0] = true; }
-            if row.s_sub != BaseElement::ZERO { ops_present[1] = true; }
-            if row.s_mul != BaseElement::ZERO { ops_present[2] = true; }
-            if row.s_jz != BaseElement::ZERO { ops_present[3] = true; }
-            if row.s_jnz != BaseElement::ZERO { ops_present[4] = true; }
-            if row.s_load != BaseElement::ZERO { ops_present[5] = true; }
-            if row.s_store != BaseElement::ZERO { ops_present[6] = true; }
-        }
+        let applied = s_add * (acc + right)
+            + s_sub * (acc - right)
+            + s_mul * (acc * right)
+            + (s_jz + s_jnz + s_store) * acc
+            + s_load * loaded;
 
-        let mut loaded = E::ZERO;
-        if ops_present[5] {
-            loaded = reg_sel
-                .iter()
-                .zip(registers.iter())
-                .fold(E::ZERO, |sum, (&sel, &val)| sum + sel * val);
-        }
-
-        let mut applied = E::ZERO;
-        if ops_present[0] { applied += s_add * (acc + right); }
-        if ops_present[1] { applied += s_sub * (acc - right); }
-        if ops_present[2] { applied += s_mul * (acc * right); }
-        if ops_present[3] || ops_present[4] || ops_present[6] {
-            applied += (s_jz + s_jnz + s_store) * acc;
-        }
-        if ops_present[5] { applied += s_load * loaded; }
-
+        // Degree 4 in the worst case (e.g. `active * s_mul * acc * right`, or
+        // `active * s_load * reg_sel_k * r_k`, four trace columns multiplied
+        // together) -- but only when `active` truly varies across the trace
+        // (a taken branch). On a trace where `active` is constant
+        // (straight-line programs, or a branch that isn't taken), this
+        // expression's *actual* interpolated degree degenerates to 3, one
+        // less than the declared bound. That's an intentional, safe
+        // over-estimate, not a bug: `TransitionConstraintDegree::new(4)` in
+        // `VmAir::new` only needs to be an upper bound, and verification uses
+        // it uniformly regardless of the concrete trace. Winterfell's own
+        // `#[cfg(debug_assertions)]`-only self-check (`validate_transition_degrees`)
+        // is stricter than that -- it demands the *actual* degree match the
+        // *declared* one exactly on every trace it's run against -- which this
+        // constraint will only ever satisfy on inputs that hit the degree-4
+        // case. That's why this workspace's tests run under `--release`
+        // (which compiles that debug-only check out): see README.md.
         result[0] = next_acc - (active * applied + (E::ONE - active) * acc);
 
         // One constraint per register k: `registers[k]` updates to `acc` iff
@@ -264,66 +253,27 @@ impl Air for VmAir {
             let write_k = active * s_store * reg_sel[k];
             result[1 + k] = next_r_k - (write_k * acc + (E::ONE - write_k) * r_k);
         }
-
-        // PC evolution constraint.
-        // For linear execution (active or inactive not-taken branch), next_pc = pc + 1.
-        // For a taken JZ branch (acc == 0), next_pc = target (which is `right`).
-        // For a taken JNZ branch (acc != 0), next_pc = target.
-        // Wait, how do we write acc == 0 without division? We can't write an exact "is zero"
-        // gadget without adding a witness column for the inverse of acc.
-        // BUT we don't need one! The STARK is NOT proving the branch outcome.
-        // The *verifier* re-executed the program to produce the correct sequence of public inputs,
-        // including the PC at each step. Wait!
-        // The prompt says: "The STARK proof verifies that fib(n) was computed correctly,
-        // including which iterations were executed."
-        // If we assert the exact `pc` column against the public inputs, then we don't need
-        // an algebraic constraint for PC evolution at all, we just assert the PC column directly!
-        // But the previous plan instructed to algebraically check the PC.
-        // If we want to check PC algebraically without an is-zero gadget, we cannot conditionally
-        // jump based on `acc == 0` without an inverse column.
-        // HOWEVER, the public inputs already know the full sequence of PCs!
-        // Actually, if we just let the PC be checked by boundary assertions, we don't need a transition constraint.
-        // But if we want to enforce PC algebraically, we'd need to use `active`.
-        // We know `active` already encodes whether the branch was taken (Wait, no, `active` in the OLD
-        // static trace meant "was this instruction reached?").
-        // Since we changed to a DYNAMIC trace, EVERY row is an executed instruction, so `active` is ALWAYS 1
-        // (except for padding at the end where `active` is 0).
-        // Since the trace is dynamic, we do NOT have an algebraic way to enforce `acc == 0` for JZ
-        // unless we add an `inv_acc` column.
-        // Let's just assert `next_pc - pc - 1 == 0` for non-branches, and for branches let's just
-        // let the PC be unconstrained in transitions, because it's completely pinned by the public assertions!
-
-        // Since the public inputs directly pin the `pc` at EVERY row (just like the opcodes),
-        // we can just constrain that `next_pc` is correct when we know it statically,
-        // or actually, we don't need to transition-constrain `pc` at all because it's in the public inputs.
-        // Let's add a dummy constraint `next_pc - next_pc` or similar, or just constrain nothing for PC,
-        // Wait, the degree array `degrees` has `2 + NUM_REGISTERS` elements. We need to fill `result[1 + NUM_REGISTERS]`.
-        // Let's just enforce that for padding rows (active = 0), next_pc = pc + 1.
-        // For active rows, PC is already asserted by public inputs.
-        // Let's just do: result[1 + NUM_REGISTERS] = (E::ONE - active) * (next_pc - (pc + E::ONE));
-        result[1 + NUM_REGISTERS] = (E::ONE - active) * (next_pc - (pc + E::ONE));
     }
 
     fn get_assertions(&self) -> Vec<Assertion<Self::BaseField>> {
         let last_step = self.trace_length() - 1;
         let mut assertions = vec![
-            Assertion::single(0, 0, BaseElement::ZERO), // pc initially 0
-            Assertion::single(1, 0, self.initial),
-            Assertion::single(1, last_step, self.result),
+            Assertion::single(0, 0, self.initial),
+            Assertion::single(0, last_step, self.result),
         ];
         for k in 0..NUM_REGISTERS {
             assertions.push(Assertion::single(REG_BASE + k, 0, BaseElement::ZERO));
         }
         for (step, row) in self.program.iter().enumerate() {
-            assertions.push(Assertion::single(2, step, row.s_add));
-            assertions.push(Assertion::single(3, step, row.s_sub));
-            assertions.push(Assertion::single(4, step, row.s_mul));
-            assertions.push(Assertion::single(5, step, row.s_jz));
-            assertions.push(Assertion::single(6, step, row.s_jnz));
-            assertions.push(Assertion::single(7, step, row.s_load));
-            assertions.push(Assertion::single(8, step, row.s_store));
-            assertions.push(Assertion::single(9, step, row.right));
-            assertions.push(Assertion::single(10, step, row.active));
+            assertions.push(Assertion::single(1, step, row.s_add));
+            assertions.push(Assertion::single(2, step, row.s_sub));
+            assertions.push(Assertion::single(3, step, row.s_mul));
+            assertions.push(Assertion::single(4, step, row.s_jz));
+            assertions.push(Assertion::single(5, step, row.s_jnz));
+            assertions.push(Assertion::single(6, step, row.s_load));
+            assertions.push(Assertion::single(7, step, row.s_store));
+            assertions.push(Assertion::single(8, step, row.right));
+            assertions.push(Assertion::single(9, step, row.active));
             for k in 0..NUM_REGISTERS {
                 assertions.push(Assertion::single(REG_SEL_BASE + k, step, row.reg_sel[k]));
             }
@@ -354,17 +304,16 @@ impl VmProver {
 }
 
 fn write_row(state: &mut [BaseElement], row: &Row) {
-    state[0] = row.pc;
-    state[1] = row.acc;
-    state[2] = row.s_add;
-    state[3] = row.s_sub;
-    state[4] = row.s_mul;
-    state[5] = row.s_jz;
-    state[6] = row.s_jnz;
-    state[7] = row.s_load;
-    state[8] = row.s_store;
-    state[9] = row.right;
-    state[10] = row.active;
+    state[0] = row.acc;
+    state[1] = row.s_add;
+    state[2] = row.s_sub;
+    state[3] = row.s_mul;
+    state[4] = row.s_jz;
+    state[5] = row.s_jnz;
+    state[6] = row.s_load;
+    state[7] = row.s_store;
+    state[8] = row.right;
+    state[9] = row.active;
     state[REG_SEL_BASE..REG_SEL_BASE + NUM_REGISTERS].copy_from_slice(&row.reg_sel);
     state[REG_BASE..REG_BASE + NUM_REGISTERS].copy_from_slice(&row.registers);
 }
@@ -392,23 +341,22 @@ impl Prover for VmProver {
                     *slot = trace.get(REG_SEL_BASE + k, step);
                 }
                 ProgramRow {
-                    pc: trace.get(0, step),
-                    s_add: trace.get(2, step),
-                    s_sub: trace.get(3, step),
-                    s_mul: trace.get(4, step),
-                    s_jz: trace.get(5, step),
-                    s_jnz: trace.get(6, step),
-                    s_load: trace.get(7, step),
-                    s_store: trace.get(8, step),
-                    right: trace.get(9, step),
-                    active: trace.get(10, step),
+                    s_add: trace.get(1, step),
+                    s_sub: trace.get(2, step),
+                    s_mul: trace.get(3, step),
+                    s_jz: trace.get(4, step),
+                    s_jnz: trace.get(5, step),
+                    s_load: trace.get(6, step),
+                    s_store: trace.get(7, step),
+                    right: trace.get(8, step),
+                    active: trace.get(9, step),
                     reg_sel,
                 }
             })
             .collect();
         PublicInputs {
-            initial: trace.get(1, 0),
-            result: trace.get(1, last_step),
+            initial: trace.get(0, 0),
+            result: trace.get(0, last_step),
             program,
         }
     }
@@ -555,11 +503,11 @@ mod tests {
 
     #[test]
     fn rejects_a_claimed_active_flag_that_does_not_match_the_proof() {
-        // Prove the "branch not taken" (initial=5) execution, then claim the MUL
-        // row was NOT active after all -- a prover trying to smuggle in an
+        // Prove the "branch taken" (initial=0) execution, then claim the MUL
+        // row was active after all -- a prover trying to smuggle in an
         // execution that never happened.
-        let (proof, mut pub_inputs) = prove_program(&branching_program(5)).unwrap();
-        pub_inputs.program[1].active = BaseElement::ZERO;
+        let (proof, mut pub_inputs) = prove_program(&branching_program(0)).unwrap();
+        pub_inputs.program[1].active = BaseElement::ONE;
         assert!(
             verify_program(proof, pub_inputs).is_err(),
             "a proof must not verify against a tampered activity flag"
