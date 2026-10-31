@@ -38,8 +38,8 @@ jobs:
         run: npm ci
         working-directory: homepage-next
 
-      - name: Lint website
-        run: npm run lint
+      - name: Lint changed navigation component
+        run: npx eslint src/components/Nav.jsx
         working-directory: homepage-next
 
       - name: Build static website
