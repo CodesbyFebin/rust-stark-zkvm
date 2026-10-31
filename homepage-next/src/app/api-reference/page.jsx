@@ -61,7 +61,7 @@ export default function ApiReference() {
         <Endpoint method="POST" path="/v1/proofs" title='"Push code, get a proof" -- the whole "no circuits, no prover clusters" pitch, for the one real backend.'>
           <p><strong className="text-white">Request:</strong></p>
           <Code>{`{ "program": "INIT 5\\nADD 3\\nMUL 2\\nSUB 4" }`}</Code>
-          <p><strong className="text-white">Response:</strong></p>
+          <p><strong className="text-white">Response (shape; byte count varies by program):</strong></p>
           <Code>{`{
   "initial": "5",
   "result": "12",
