@@ -22,7 +22,7 @@ For a dashboard hosted at https://www.zkvm.host, start the server with:
 ZKVM_ALLOWED_ORIGINS=https://www.zkvm.host cargo run --release -p zkvm-host-server
 ~~~
 
-The environment variable accepts a comma-separated allowlist. Invalid origin values are ignored. An unset or empty allowlist denies cross-origin browser access. The service still binds to loopback by default; use a TLS reverse proxy and an authenticated, trusted network if the API must be reachable remotely. CORS is a browser policy, not authentication.
+The environment variable accepts a comma-separated allowlist. Invalid values and the wildcard origin are ignored; cross-origin access remains fail-closed unless an exact origin matches. An unset or empty allowlist denies cross-origin browser access. The service still binds to loopback by default; use a TLS reverse proxy and an authenticated, trusted network if the API must be reachable remotely. CORS is a browser policy, not authentication.
 
 ## Clans and animation
 

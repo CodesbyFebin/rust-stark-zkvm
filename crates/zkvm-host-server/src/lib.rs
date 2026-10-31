@@ -23,13 +23,19 @@ use axum::{
 use base64::{engine::general_purpose::STANDARD, Engine as _};
 use serde::{Deserialize, Serialize};
 use tower::limit::ConcurrencyLimitLayer;
-use tower_http::{cors::{AllowOrigin, CorsLayer}, timeout::TimeoutLayer};
+use tower_http::{
+    cors::{AllowOrigin, CorsLayer},
+    timeout::TimeoutLayer,
+};
 
 use backend::BackendProof;
 use backends::{mock_echo::MockEchoBackend, stark::StarkBackend};
 use router::ProverRouter;
 use zkvm_isa::Program;
-use zkvm_stark::{proof_security_bits, prove_program, public_inputs_for_program, verify_program, Proof, MIN_CONJECTURED_SECURITY_BITS};
+use zkvm_stark::{
+    proof_security_bits, prove_program, public_inputs_for_program, verify_program, Proof,
+    MIN_CONJECTURED_SECURITY_BITS,
+};
 
 struct AppState {
     router: ProverRouter,
@@ -101,7 +107,7 @@ fn configured_origins() -> Vec<HeaderValue> {
         .unwrap_or_default()
         .split(',')
         .map(str::trim)
-        .filter(|origin| !origin.is_empty())
+        .filter(|origin| !origin.is_empty() && *origin != "*")
         .filter_map(|origin| origin.parse::<HeaderValue>().ok())
         .collect()
 }
@@ -114,10 +120,12 @@ fn app_with_origins(origins: Vec<HeaderValue>) -> Router {
         .route("/v1/backends", get(list_backends))
         .route("/v1/backends/{name}/proofs", post(create_backend_proof))
         .route("/v1/backends/{name}/verify", post(verify_backend_proof))
-        .layer(CorsLayer::new()
-            .allow_origin(AllowOrigin::list(origins))
-            .allow_methods([Method::GET, Method::POST])
-            .allow_headers([header::CONTENT_TYPE]))
+        .layer(
+            CorsLayer::new()
+                .allow_origin(AllowOrigin::list(origins))
+                .allow_methods([Method::GET, Method::POST])
+                .allow_headers([header::CONTENT_TYPE]),
+        )
         .layer(DefaultBodyLimit::max(MAX_BODY_BYTES))
         .layer(TimeoutLayer::with_status_code(
             StatusCode::REQUEST_TIMEOUT,

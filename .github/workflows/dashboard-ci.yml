@@ -45,3 +45,15 @@ jobs:
       - name: Build static website
         run: npm run build
         working-directory: homepage-next
+
+      - name: Check static-site sync script syntax
+        run: bash -n sync-next-to-site.sh
+
+      - name: Sync export into deploy root
+        run: ./sync-next-to-site.sh
+
+      - name: Ensure hand-authored command center survives sync
+        run: |
+          test -s site/command-center/index.html
+          test -s site/command-center/app.js
+          test -s site/assets/dragon-command.webp
