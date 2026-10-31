@@ -18,6 +18,9 @@ pub struct BackendProof {
     pub bytes_len: usize,
     pub bytes_base64: String,
     pub public_inputs: serde_json::Value,
+    /// Present only for cryptographic backends that expose a Winterfell security estimate.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub security_bits: Option<u32>,
 }
 
 #[derive(Debug, thiserror::Error)]

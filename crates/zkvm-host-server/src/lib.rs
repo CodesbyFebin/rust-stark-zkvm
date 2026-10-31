@@ -15,7 +15,7 @@ use std::time::Duration;
 
 use axum::{
     extract::{DefaultBodyLimit, Path, State},
-    http::StatusCode,
+    http::{header, HeaderValue, Method, StatusCode},
     response::{IntoResponse, Json, Response},
     routing::{get, post},
     Router,
@@ -23,13 +23,13 @@ use axum::{
 use base64::{engine::general_purpose::STANDARD, Engine as _};
 use serde::{Deserialize, Serialize};
 use tower::limit::ConcurrencyLimitLayer;
-use tower_http::timeout::TimeoutLayer;
+use tower_http::{cors::{AllowOrigin, CorsLayer}, timeout::TimeoutLayer};
 
 use backend::BackendProof;
 use backends::{mock_echo::MockEchoBackend, stark::StarkBackend};
 use router::ProverRouter;
 use zkvm_isa::Program;
-use zkvm_stark::{prove_program, public_inputs_for_program, verify_program, Proof};
+use zkvm_stark::{proof_security_bits, prove_program, public_inputs_for_program, verify_program, Proof, MIN_CONJECTURED_SECURITY_BITS};
 
 struct AppState {
     router: ProverRouter,
@@ -96,7 +96,17 @@ pub(crate) fn check_program_size(program: &Program) -> Result<(), String> {
 /// Hardening applied uniformly to every route: a request body size cap, a
 /// per-request timeout, and a concurrency cap (see the constants above for
 /// why each value was picked, and what's still NOT covered).
-pub fn app() -> Router {
+fn configured_origins() -> Vec<HeaderValue> {
+    std::env::var("ZKVM_ALLOWED_ORIGINS")
+        .unwrap_or_default()
+        .split(',')
+        .map(str::trim)
+        .filter(|origin| !origin.is_empty())
+        .filter_map(|origin| origin.parse::<HeaderValue>().ok())
+        .collect()
+}
+
+fn app_with_origins(origins: Vec<HeaderValue>) -> Router {
     Router::new()
         .route("/healthz", get(healthz))
         .route("/v1/proofs", post(create_proof))
@@ -104,6 +114,10 @@ pub fn app() -> Router {
         .route("/v1/backends", get(list_backends))
         .route("/v1/backends/{name}/proofs", post(create_backend_proof))
         .route("/v1/backends/{name}/verify", post(verify_backend_proof))
+        .layer(CorsLayer::new()
+            .allow_origin(AllowOrigin::list(origins))
+            .allow_methods([Method::GET, Method::POST])
+            .allow_headers([header::CONTENT_TYPE]))
         .layer(DefaultBodyLimit::max(MAX_BODY_BYTES))
         .layer(TimeoutLayer::with_status_code(
             StatusCode::REQUEST_TIMEOUT,
@@ -113,6 +127,12 @@ pub fn app() -> Router {
         .with_state(Arc::new(AppState {
             router: default_router(),
         }))
+}
+
+/// Builds the HTTP API. Cross-origin browser access is denied unless the
+/// operator explicitly allowlists origins in ZKVM_ALLOWED_ORIGINS (comma-separated).
+pub fn app() -> Router {
+    app_with_origins(configured_origins())
 }
 
 async fn healthz() -> &'static str {
@@ -147,6 +167,8 @@ struct CreateProofResponse {
     result: String,
     proof_bytes: usize,
     proof_base64: String,
+    security_bits: u32,
+    minimum_security_bits: u32,
 }
 
 /// `POST /v1/proofs` -- "push code, get a ZK proof" as a single HTTP call. This is
@@ -159,6 +181,7 @@ async fn create_proof(
     let program = Program::parse(&req.program).map_err(bad_request)?;
     check_program_size(&program).map_err(bad_request)?;
     let (proof, pub_inputs) = prove_program(&program).map_err(internal_error)?;
+    let security_bits = proof_security_bits(&proof);
     let bytes = proof_to_bytes(&proof);
 
     Ok(Json(CreateProofResponse {
@@ -166,6 +189,8 @@ async fn create_proof(
         result: pub_inputs.result.to_string(),
         proof_bytes: bytes.len(),
         proof_base64: STANDARD.encode(bytes),
+        security_bits,
+        minimum_security_bits: MIN_CONJECTURED_SECURITY_BITS,
     }))
 }
 
@@ -180,6 +205,8 @@ struct VerifyResponse {
     valid: bool,
     result: Option<String>,
     error: Option<String>,
+    security_bits: Option<u32>,
+    minimum_security_bits: u32,
 }
 
 /// `POST /v1/verify` -- re-executes `program` locally (cheap) to know what public
@@ -198,6 +225,7 @@ async fn verify_proof_handler(
     let proof =
         proof_from_bytes(&bytes).map_err(|e| bad_request(format!("bad proof bytes: {e}")))?;
 
+    let security_bits = proof_security_bits(&proof);
     let padded = program.padded();
     let pub_inputs = public_inputs_for_program(&padded);
     let claimed_result = pub_inputs.result.to_string();
@@ -207,11 +235,15 @@ async fn verify_proof_handler(
             valid: true,
             result: Some(claimed_result),
             error: None,
+            security_bits: Some(security_bits),
+            minimum_security_bits: MIN_CONJECTURED_SECURITY_BITS,
         })),
         Err(e) => Ok(Json(VerifyResponse {
             valid: false,
             result: None,
             error: Some(e.to_string()),
+            security_bits: Some(security_bits),
+            minimum_security_bits: MIN_CONJECTURED_SECURITY_BITS,
         })),
     }
 }
@@ -303,5 +335,33 @@ async fn verify_backend_proof(
             valid: false,
             error: Some(e.0),
         })),
+    }
+}
+
+
+#[cfg(test)]
+mod cors_tests {
+    use super::*;
+    use axum::{body::Body, http::Request};
+    use tower::ServiceExt;
+
+    #[tokio::test]
+    async fn cors_preflight_allows_only_an_explicitly_configured_origin() {
+        let app = app_with_origins(vec![HeaderValue::from_static("https://dashboard.example")]);
+        let request = Request::builder()
+            .method(Method::OPTIONS)
+            .uri("/v1/proofs")
+            .header(header::ORIGIN, "https://dashboard.example")
+            .header(header::ACCESS_CONTROL_REQUEST_METHOD, "POST")
+            .header(header::ACCESS_CONTROL_REQUEST_HEADERS, "content-type")
+            .body(Body::empty())
+            .unwrap();
+
+        let response = app.oneshot(request).await.unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(
+            response.headers().get(header::ACCESS_CONTROL_ALLOW_ORIGIN).unwrap(),
+            "https://dashboard.example"
+        );
     }
 }

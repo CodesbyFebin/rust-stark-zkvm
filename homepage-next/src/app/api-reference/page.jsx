@@ -64,9 +64,11 @@ export default function ApiReference() {
           <p><strong className="text-white">Response:</strong></p>
           <Code>{`{
   "initial": "5",
-  "result": "24",
-  "proof_bytes": 11234,
-  "proof_base64": "..."
+  "result": "12",
+  "proof_bytes": 12345,
+  "proof_base64": "...",
+  "security_bits": 95,
+  "minimum_security_bits": 95
 }`}</Code>
           <p>Rejects anything over the 2,000-instruction cap -- see <Link href="/features" className="text-[#00ff41] underline">Features</Link> for why that number specifically.</p>
         </Endpoint>
@@ -75,7 +77,7 @@ export default function ApiReference() {
           <p><strong className="text-white">Request:</strong></p>
           <Code>{`{ "program": "INIT 5\\n...", "proof_base64": "..." }`}</Code>
           <p><strong className="text-white">Response:</strong></p>
-          <Code>{`{ "valid": true, "result": "24", "error": null }`}</Code>
+          <Code>{`{ "valid": true, "result": "12", "error": null, "security_bits": 95, "minimum_security_bits": 95 }`}</Code>
           <p>Deliberately doesn't require anything from the <code className="text-[#00ff41]">/v1/proofs</code> response other than the proof bytes -- the program itself is the only shared trust anchor.</p>
         </Endpoint>
 
@@ -99,6 +101,7 @@ export default function ApiReference() {
           Hardening applied to all routes: 1&nbsp;MB body limit, 60s timeout, 4 concurrent requests max.
           Full source: <a className="text-[#00ff41] underline" href={`${REPO}/blob/main/crates/zkvm-host-server/src/lib.rs`}>crates/zkvm-host-server/src/lib.rs</a>.
           Design rationale: <a className="text-[#00ff41] underline" href={`${REPO}/blob/main/docs/HOST_SERVICE.md`}>docs/HOST_SERVICE.md</a>.
+          Browser CORS is denied by default; configure the explicit ZKVM_ALLOWED_ORIGINS allowlist for cross-origin dashboard access.
         </div>
       </div>
     </section>
