@@ -7,7 +7,7 @@ const JSON_LD = {
   '@type': 'SoftwareSourceCode',
   name: 'rust-stark-zkvm',
   alternateName: 'zkvm.host',
-  description: 'A real STARK-provable zero-knowledge virtual machine written in Rust, built on Winterfell: a custom instruction set with conditional branching and a register file, a from-scratch AIR, an HTTP + MCP proving service, and Foundry contracts with a documented on-chain trust model.',
+  description: 'A Rust virtual machine for public-input verifiable computation, with a custom .zkasm instruction set, Winterfell STARK proving and verification, an HTTP + MCP service, and an explicitly trusted on-chain attestation bridge.',
   codeRepository: REPO,
   programmingLanguage: ['Rust', 'Solidity'],
   license: `${REPO}/blob/main/LICENSE`,
@@ -16,7 +16,7 @@ const JSON_LD = {
 };
 
 const TITLE = 'Open-Source STARK Proving Infrastructure — zkvm.host';
-const DESCRIPTION = 'A real, open-source STARK-provable zero-knowledge virtual machine written in Rust. Every capability explicitly labeled implemented, roadmap, or research -- no marketing fiction.';
+const DESCRIPTION = 'An open-source Rust VM for public-input verifiable computation using Winterfell STARK proofs. The custom ISA, verifier security policy, trust boundaries, and unimplemented capabilities are documented explicitly.';
 
 export const metadata = {
   title: TITLE,

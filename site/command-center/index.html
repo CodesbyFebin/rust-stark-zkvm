@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050b0b">
+  <title>Dragon Command Center — rust-stark-zkvm</title>
+  <meta name="description" content="A responsive command dashboard for the Rust STARK zkVM. Connect to a real proving API, generate proofs, and verify them independently.">
+  <link rel="canonical" href="https://www.zkvm.host/command-center/">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div class="ambient ambient-a" aria-hidden="true"></div>
+  <div class="ambient ambient-b" aria-hidden="true"></div>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="zkvm.host home">
+      <span class="brand-mark">Z</span>
+      <span><strong>MeTaPeN</strong><small>DRAGON PROOF COMMAND</small></span>
+    </a>
+    <nav class="topnav" aria-label="Primary navigation">
+      <a class="active" href="#overview">Command</a>
+      <a href="#clans">Clans</a>
+      <a href="#proof-engine">Proof Engine</a>
+      <a href="#integrity">Integrity</a>
+    </nav>
+    <div class="top-actions">
+      <span class="mode-pill"><i></i> OPERATOR VIEW</span>
+      <a class="repo-link" href="https://github.com/CodesbyFebin/rust-stark-zkvm" target="_blank" rel="noreferrer">SOURCE ↗</a>
+    </div>
+  </header>
+
+  <main id="overview">
+    <section class="hero shell">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="eyebrow-line"></span> RUST · WINTERFELL · STARK</div>
+        <h1>THE DRAGON<br><em>PROOF ENGINE</em></h1>
+        <p class="hero-lede">A command surface for verifiable computation. The dragon represents the orchestration layer; the cryptographic result still comes from the Rust prover and independent verifier.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#proof-engine">OPEN PROOF WORKBENCH <span>↓</span></a>
+          <a class="button button-quiet" href="#clans">EXPLORE THE CLANS</a>
+        </div>
+        <div class="hero-facts">
+          <div><b>95-bit</b><span>minimum conjectured security policy</span></div>
+          <div><b>PUBLIC INPUTS</b><span>no private-witness claim</span></div>
+          <div><b>WINTERFELL</b><span>real STARK backend</span></div>
+        </div>
+      </div>
+      <div class="dragon-panel" aria-label="Animated dragon command visual">
+        <div class="dragon-orbit orbit-one"></div>
+        <div class="dragon-orbit orbit-two"></div>
+        <div class="dragon-orbit orbit-three"></div>
+        <div class="dragon-core-glow"></div>
+        <div class="dragon-particles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <img class="dragon-art" src="/assets/dragon-command.webp" alt="Emerald and cyan cybernetic dragon coiled around a neural network">
+        <div class="dragon-label label-top"><span>NEURAL ORCHESTRATION</span><b>METAPEN / 01</b></div>
+        <div class="dragon-label label-bottom"><span>PROOF INTEGRITY</span><b id="dragon-proof-state">AWAITING VERIFIER</b></div>
+        <div class="dragon-node node-a"></div><div class="dragon-node node-b"></div><div class="dragon-node node-c"></div>
+      </div>
+    </section>
+
+    <section class="status-strip shell" aria-label="System status">
+      <div class="status-cell"><span class="status-dot offline" id="api-dot"></span><div><small>PROVER API</small><b id="api-status">DISCONNECTED</b></div></div>
+      <div class="status-cell"><span class="status-dot offline" id="stark-dot"></span><div><small>STARK BACKEND</small><b id="stark-status">NOT CHECKED</b></div></div>
+      <div class="status-cell"><span class="status-dot offline"></span><div><small>CLAN WORKERS</small><b>0 CONNECTED</b></div></div>
+      <div class="status-cell"><span class="status-dot online"></span><div><small>VERIFIER POLICY</small><b>≥ 95 BITS</b></div></div>
+      <div class="demo-ribbon">UI ANIMATION · NO SYNTHETIC TELEMETRY</div>
+    </section>
+
+    <section class="section shell" id="clans">
+      <div class="section-heading">
+        <div><div class="eyebrow">01 / SPECIALIST SWARM</div><h2>THE TEN CLANS</h2></div>
+        <div class="section-note">500 planned specialist slots · 0 connected workers<br><b>Catalog capacity only — not a live fleet.</b></div>
+      </div>
+      <div class="clan-layout">
+        <div class="clan-grid" id="clan-grid">
+          <button class="clan-card selected" data-clan="recon"><span class="clan-symbol">⌖</span><span class="clan-name">RECON</span><small>Surface mapping</small><b>50 PLANNED SLOTS</b></button>
+          <button class="clan-card" data-clan="web"><span class="clan-symbol">◎</span><span class="clan-name">WEB</span><small>Web application review</small><b>50 PLANNED SLOTS</b></button>
+          <button class="clan-card" data-clan="api"><span class="clan-symbol">&lt;/&gt;</span><span class="clan-name">API</span><small>Contract and API analysis</small><b>50 PLANNED SLOTS</b></button>
+          <button class="clan-card" data-clan="identity"><span class="clan-symbol">◇</span><span class="clan-name">IDENTITY</span><small>Auth and access review</small><b>50 PLANNED SLOTS</b></button>
+          <button class="clan-card" data-clan="source"><span class="clan-symbol">⌘</span><span class="clan-name">SOURCE</span><small>Static analysis adapters</small><b>50 PLANNED SLOTS</b></button>
+          <button class="clan-card" data-clan="dependencies"><span class="clan-symbol">⬡</span><span class="clan-name">DEPENDENCIES</span><small>SBOM and package review</small><b>50 PLANNED SLOTS</b></button>
+          <button class="clan-card" data-clan="config"><span class="clan-symbol">⚙</span><span class="clan-name">CONFIG</span><small>Configuration validation</small><b>50 PLANNED SLOTS</b></button>
+          <button class="clan-card" data-clan="cloud"><span class="clan-symbol">☁</span><span class="clan-name">CLOUD</span><small>Cloud posture adapters</small><b>50 PLANNED SLOTS</b></button>
+          <button class="clan-card" data-clan="defense"><span class="clan-symbol">⬢</span><span class="clan-name">DEFENSE</span><small>Policy and detection review</small><b>50 PLANNED SLOTS</b></button>
+          <button class="clan-card" data-clan="evidence"><span class="clan-symbol">▤</span><span class="clan-name">EVIDENCE</span><small>Receipt and proof binding</small><b>50 PLANNED SLOTS</b></button>
+        </div>
+        <aside class="clan-detail panel">
+          <div class="panel-kicker">CLAN INSPECTOR <span class="tag tag-muted">CATALOG</span></div>
+          <div class="clan-detail-symbol" id="clan-symbol">⌖</div>
+          <h3 id="clan-title">RECON CLAN</h3>
+          <p id="clan-description">Surface mapping and authorized asset inventory adapters. No scanner is invoked by this dashboard.</p>
+          <div class="detail-row"><span>Worker state</span><b class="state-muted">NOT CONNECTED</b></div>
+          <div class="detail-row"><span>Capacity</span><b>50 PLANNED</b></div>
+          <div class="detail-row"><span>Execution policy</span><b>HUMAN APPROVAL</b></div>
+          <div class="detail-divider"></div>
+          <p class="small-copy">Clan cards are orchestration concepts. They do not imply that tools, agents, Kubernetes pods, or target access are provisioned.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section shell" id="proof-engine">
+      <div class="section-heading">
+        <div><div class="eyebrow">02 / CRYPTOGRAPHIC WORKBENCH</div><h2>PROVE · THEN VERIFY</h2></div>
+        <div class="section-note">The dashboard never manufactures proof results.<br><b>Both actions call the configured Rust HTTP API.</b></div>
+      </div>
+      <div class="workbench-grid">
+        <section class="panel editor-panel">
+          <div class="panel-head"><span>PROGRAM.ZKASM</span><span class="tag tag-green">REAL ISA</span></div>
+          <label class="visually-hidden" for="program-input">zkasm program source</label>
+          <textarea id="program-input" spellcheck="false" autocapitalize="off">INIT 5
+ADD 3
+MUL 2
+SUB 4</textarea>
+          <div class="editor-foot"><span id="instruction-count">4 non-empty lines</span><span>Public program · no private witness</span></div>
+          <div class="button-row">
+            <button class="button button-primary" id="prove-button" disabled>GENERATE STARK PROOF</button>
+            <button class="button button-outline" id="verify-button" disabled>VERIFY PROOF</button>
+          </div>
+          <p class="hint">Connect a prover API first. Proof generation is CPU-intensive and runs on that server, not in this browser.</p>
+        </section>
+
+        <section class="panel receipt-panel">
+          <div class="panel-head"><span>PROOF RECEIPT</span><span class="tag tag-muted" id="proof-status">NO PROOF</span></div>
+          <div class="receipt-empty" id="receipt-empty"><div class="empty-seal">◇</div><b>NO VERIFIED RECEIPT</b><span>Generate a proof, then run independent verification.</span></div>
+          <div class="receipt-data hidden" id="receipt-data">
+            <div class="receipt-result"><span class="seal-check">✓</span><div><small>VERIFIER RESULT</small><b id="verification-result">GENERATED · NOT VERIFIED</b></div></div>
+            <div class="detail-row"><span>Public result</span><b id="proof-result">—</b></div>
+            <div class="detail-row"><span>Proof size</span><b id="proof-size">—</b></div>
+            <div class="detail-row"><span>Conjectured security</span><b id="proof-security">—</b></div>
+            <div class="detail-row"><span>Minimum policy</span><b id="proof-min-security">95 bits</b></div>
+            <div class="hash-block"><small>SHA-256 · BROWSER-COMPUTED FINGERPRINT</small><code id="proof-hash">Pending proof bytes</code></div>
+          </div>
+          <div class="error-box hidden" id="proof-error" role="alert"></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="section shell" id="connectivity">
+      <div class="section-heading">
+        <div><div class="eyebrow">03 / SERVICE CONNECTION</div><h2>CONNECT THE REAL BACKEND</h2></div>
+        <div class="section-note">Default target is local development.<br><b>Remote origins require an explicit CORS allowlist.</b></div>
+      </div>
+      <div class="connect-grid">
+        <section class="panel connect-panel">
+          <div class="panel-head"><span>HTTP PROVER ENDPOINT</span><span class="tag tag-muted" id="connection-badge">DISCONNECTED</span></div>
+          <label for="api-url">Base URL</label>
+          <div class="endpoint-row"><input id="api-url" type="url" value="http://127.0.0.1:4477" autocomplete="url" spellcheck="false"><button class="button button-primary" id="connect-button">CONNECT</button></div>
+          <p class="hint">Expected routes: GET /healthz, GET /v1/backends, POST /v1/proofs, POST /v1/verify.</p>
+          <div class="backend-list" id="backend-list"><div class="backend-row"><span>stark</span><b class="state-muted">NOT CHECKED</b></div><div class="backend-row"><span>mock-echo</span><b class="state-muted">NON-CRYPTOGRAPHIC STUB</b></div></div>
+        </section>
+        <section class="panel integrity-panel" id="integrity">
+          <div class="panel-head"><span>TRUST BOUNDARIES</span><span class="tag tag-amber">RESEARCH SOFTWARE</span></div>
+          <div class="integrity-item"><i class="integrity-icon">✓</i><div><b>Off-chain STARK verification</b><p>Winterfell verifies the proof against public inputs and the selected program.</p></div></div>
+          <div class="integrity-item"><i class="integrity-icon">!</i><div><b>Public-input model</b><p>The verifier re-executes the public .zkasm program. This is not private-witness zero knowledge.</p></div></div>
+          <div class="integrity-item"><i class="integrity-icon">!</i><div><b>On-chain attestation</b><p>The current contract path is a trusted attester bridge, not an on-chain STARK verifier.</p></div></div>
+          <div class="integrity-item"><i class="integrity-icon">!</i><div><b>Execution boundary</b><p>This VM does not execute arbitrary Rust, Linux, Kali, containers, or Kubernetes workloads.</p></div></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="section shell">
+      <div class="section-heading"><div><div class="eyebrow">04 / OPERATOR AUDIT</div><h2>LOCAL EVENT JOURNAL</h2></div><div class="section-note">Only actions and responses observed in this browser session are shown.</div></div>
+      <div class="panel journal-panel"><div class="panel-head"><span>SESSION EVENTS</span><button class="text-button" id="clear-log">CLEAR JOURNAL</button></div><ol id="event-log" aria-live="polite"><li><time>INIT</time><span>Command center loaded. No backend telemetry connected.</span><b class="state-muted">LOCAL</b></li></ol></div>
+    </section>
+  </main>
+
+  <footer class="footer shell"><span>METAPEN / DRAGON COMMAND</span><span>RUST STARK ZKVM · EVIDENCE FIRST</span><a href="https://github.com/CodesbyFebin/rust-stark-zkvm" target="_blank" rel="noreferrer">SOURCE CODE ↗</a></footer>
+</body>
+</html>

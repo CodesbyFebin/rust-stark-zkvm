@@ -38,6 +38,8 @@ async fn create_proof_and_verify_round_trip() {
     assert_eq!(status, StatusCode::OK);
     assert_eq!(body["result"], "12");
     assert!(body["proof_bytes"].as_u64().unwrap() > 0);
+    assert!(body["security_bits"].as_u64().unwrap() >= 95);
+    assert_eq!(body["minimum_security_bits"], 95);
     let proof_base64 = body["proof_base64"].as_str().unwrap().to_string();
 
     let (status, body) = post_json(
@@ -48,6 +50,8 @@ async fn create_proof_and_verify_round_trip() {
     assert_eq!(status, StatusCode::OK);
     assert_eq!(body["valid"], true);
     assert_eq!(body["result"], "12");
+    assert!(body["security_bits"].as_u64().unwrap() >= 95);
+    assert_eq!(body["minimum_security_bits"], 95);
 }
 
 #[tokio::test]
@@ -115,6 +119,7 @@ async fn stark_backend_round_trips_through_the_router() {
     assert_eq!(status, StatusCode::OK);
     assert_eq!(body["backend"], "stark");
     assert!(body["bytes_len"].as_u64().unwrap() > 0);
+    assert!(body["security_bits"].as_u64().unwrap() >= 95);
     let bytes_base64 = body["bytes_base64"].as_str().unwrap().to_string();
 
     let (status, body) = post_json(

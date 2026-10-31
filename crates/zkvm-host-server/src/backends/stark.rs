@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use base64::{engine::general_purpose::STANDARD, Engine as _};
 
 use zkvm_isa::Program;
-use zkvm_stark::{prove_program, public_inputs_for_program, verify_program, Proof};
+use zkvm_stark::{proof_security_bits, prove_program, public_inputs_for_program, verify_program, Proof};
 
 use crate::backend::{BackendError, BackendProof, ProverBackend};
 
@@ -19,6 +19,7 @@ impl ProverBackend for StarkBackend {
     async fn prove(&self, program: &Program) -> Result<BackendProof, BackendError> {
         crate::check_program_size(program).map_err(BackendError)?;
         let (proof, pub_inputs) = prove_program(program).map_err(BackendError)?;
+        let security_bits = proof_security_bits(&proof);
         let bytes = proof_to_bytes(&proof);
         Ok(BackendProof {
             backend: self.name().to_string(),
@@ -28,6 +29,7 @@ impl ProverBackend for StarkBackend {
                 "initial": pub_inputs.initial.to_string(),
                 "result": pub_inputs.result.to_string(),
             }),
+            security_bits: Some(security_bits),
         })
     }
 
