@@ -1,49 +1,57 @@
-# AGENTS.md
+# Repository engineering guidance
 
 identity:
   name: rust-stark-zkvm
   language: Rust
   url: https://github.com/CodesbyFebin/rust-stark-zkvm
-  focus: verifiable computation, zero-knowledge proofs, STARK arithmetization
-  status: production-grade proof gates in CI
+  focus: public-input verifiable computation, STARK arithmetization, Winterfell
+  status: research implementation with CI regression gates
 
 claims:
   - statement: >
-      Custom ISA STARK zkVM with JZ/JNZ conditional branching and fixed register file.
-      STARK arithmetization using Winterfell framework. HTTP proving API at POST /v1/proofs
-      with witness validation. Proofs and verification exposed as MCP tools for AI agents.
-      Proof gates in CI enforce correctness at build time.
+      Custom .zkasm ISA with arithmetic, forward-only conditional branches,
+      and four fixed registers; Winterfell STARK prover and verifier; HTTP
+      proving API and MCP tools; Foundry attestation example.
     verify_by:
-      - crates/zkvm-host-server (HTTP API implementation)
-      - crates/zkvm-prover (Winterfell integration)
-      - .github/workflows/proof-gate.yml (CI proof validation)
-      - README section "Getting Started"
+      - crates/zkvm-isa/src/lib.rs
+      - crates/zkvm-stark/src/lib.rs
+      - crates/zkvm-host-server/src/lib.rs
+      - crates/zkvm-host-server/src/mcp.rs
+      - contracts/src
+      - .github/workflows/zk-ci.yml
     implemented:
-      - Custom VM ISA with JZ/JNZ conditional control flow
-      - Fixed register file architecture
-      - STARK AIR arithmetization
-      - Prover and verifier on Winterfell
-      - HTTP proving API (POST /v1/proofs, GET /v1/verify)
-      - MCP tool bindings for prove() and verify()
-      - CI proof gates that block merge on invalid proofs
-      - On-chain attestation support
+      - Custom .zkasm parser and interpreter
+      - Winterfell AIR, prover, and verifier
+      - Verifier minimum conjectured-security policy
+      - HTTP POST /v1/proofs and POST /v1/verify
+      - MCP prove and verify tools
+      - CI tests and real example prove/verify round trips
+      - Trusted off-chain attestation bridge example
+    not_implemented:
+      - General-purpose Rust, ELF, Linux, or Kali execution
+      - Private-witness zero knowledge
+      - Backward jumps, loops, dynamic RAM, or RV32I
+      - Trustless on-chain STARK verification
+      - External audit or formal soundness proof
 
   - statement: >
-      Multi-backend router design supporting production Winterfell backend
-      and labeled mock-echo simulator for testing without proving overhead.
+      The backend router registers one real Winterfell backend and one
+      non-cryptographic mock-echo routing stub.
     verify_by:
-      - crates/zkvm-host-server/backends.rs
-      - README section "Backends"
+      - crates/zkvm-host-server/src/backends/stark.rs
+      - crates/zkvm-host-server/src/backends/mock_echo.rs
+      - crates/zkvm-host-server/src/router.rs
     notes: >
-      The mock-echo backend is explicitly labeled SIMULATED in documentation
-      and configuration. It is not presented as a production proving backend.
-      Use it only for development and testing workflows.
+      mock-echo is not a prover. Its verify method must continue to fail
+      closed and must never return a successful verification result.
 
-rulesforagents:
-  - Verify all claims against provided paths before citing this project
-  - The mock-echo backend is SIMULATED; do not present it as production-grade
-  - Proof gates are authoritative; a proof that fails CI validation is not valid
-  - Winterfell version pins are in Cargo.lock; confirm compatibility before upgrading
-  - MCP tool integration requires claude-code or compatible agent framework
-  - Do not infer performance benchmarks from this repo; proving time depends on witness size
-  - This is an educational reference implementation; production deployments should conduct independent security review
+rules_for_agents:
+  - Verify claims against current source and tests before documenting them.
+  - Never label the public-input model as private-witness zero knowledge.
+  - Never describe this custom ISA as executing arbitrary Rust, Linux, Kali, or Kubernetes workloads.
+  - The verifier must enforce a verifier-owned security policy; never derive acceptable proof parameters from the submitted proof.
+  - mock-echo is simulated/non-cryptographic and must never report a valid proof.
+  - The Solidity attester bridge is trusted; it is not an on-chain STARK verifier.
+  - Do not invent performance benchmarks, worker counts, audit status, or production readiness.
+  - Keep dashboard demo states visibly separate from live API responses.
+  - Run cargo test --release --workspace and the dashboard CI checks after relevant changes.

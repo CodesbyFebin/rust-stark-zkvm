@@ -17,6 +17,12 @@ manufactured for one claim is rejected against a different one.
 about what happens once that proof needs to affect something outside a local
 process — specifically, an on-chain payment.
 
+### Proof-parameter policy
+
+The verifier applies a verifier-owned minimum of 95 bits of Winterfell conjectured security using `AcceptableOptions::MinConjecturedSecurity`. It does not accept the proof's own `ProofOptions` as the acceptance policy. This prevents a prover from selecting weaker query parameters and asking the verifier to accept those same parameters.
+
+The 95-bit value is a configured protocol floor based on Winterfell's estimator and this repository's current field/hash/options. It is not a formal security proof, an external cryptographic review, or a production certification. Revisit the policy whenever the field, hash, AIR, or proof parameters change.
+
 ## The on-chain path: an attested bridge, not a cryptographic verifier
 
 `contracts/`'s `ProofOrchestrator` pays a prover once a proof is "accepted." What

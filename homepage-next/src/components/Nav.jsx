@@ -32,6 +32,7 @@ export default function Nav() {
           {NAV_LINKS.map(({ to, label }) => (
             <Link key={to} href={to} className={linkClass(to)}>{label}</Link>
           ))}
+          <a href="/command-center/" className="font-mono text-xs uppercase tracking-widest text-[#00ff41] hover:text-white transition-colors">Command Center</a>
           <a href="/blog/" className="font-mono text-xs uppercase tracking-widest text-gray-500 hover:text-[#00ff41] transition-colors">Blog</a>
         </div>
 
@@ -57,6 +58,7 @@ export default function Nav() {
               $ {label.toLowerCase()}
             </Link>
           ))}
+          <a href="/command-center/" onClick={() => setMobileMenuOpen(false)} className="block w-full text-left px-6 py-3 font-mono text-xs uppercase tracking-widest text-[#00ff41] hover:bg-[#00ff41]/5">$ command center</a>
           <a href="/blog/" className="block w-full text-left px-6 py-3 font-mono text-xs uppercase tracking-widest text-gray-400 hover:text-[#00ff41] hover:bg-[#00ff41]/5">$ blog</a>
         </div>
       )}

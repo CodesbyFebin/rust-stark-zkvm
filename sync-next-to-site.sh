@@ -3,7 +3,7 @@
 # root. Clears every path Next's out/ owns first (so stale fingerprinted
 # _next/ chunks and removed routes don't accumulate), without touching
 # hand-authored content that lives in site/ alongside it: blog/, glossary/,
-# dashboard/, depin/, funding/, assets/, robots.txt, llms.txt, sitemap.xml,
+# dashboard/, command-center/, depin/, funding/, assets/, robots.txt, llms.txt, sitemap.xml,
 # the real favicons, README.md, vercel.json, .gitignore, .vercel/.
 set -euo pipefail
 

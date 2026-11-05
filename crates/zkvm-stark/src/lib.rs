@@ -284,6 +284,15 @@ impl Air for VmAir {
 
 type Hasher = Blake3_256<BaseElement>;
 
+/// Minimum conjectured STARK security accepted by every verifier entry point.
+/// This is a protocol policy, not an independent audit or production-readiness claim.
+pub const MIN_CONJECTURED_SECURITY_BITS: u32 = 95;
+
+/// Returns Winterfell's conjectured security estimate for a proof using this VM's hasher.
+pub fn proof_security_bits(proof: &Proof) -> u32 {
+    proof.conjectured_security::<Hasher>().bits()
+}
+
 pub struct VmProver {
     options: ProofOptions,
 }
@@ -400,8 +409,9 @@ impl Prover for VmProver {
     }
 }
 
-/// ~96-bit conjectured security: 32 queries, blowup factor 8. Fine for a Phase 1 demo; a
-/// production deployment needs a proper security-parameter review (see /docs/ROADMAP.md).
+/// Default parameters meet the verifier's 95-bit conjectured-security floor:
+/// 32 queries × log2(8) blowup, capped by the field and hash security. This
+/// remains an unaudited research configuration; see docs/ROADMAP.md.
 pub fn default_options() -> ProofOptions {
     ProofOptions::new(
         32,
@@ -429,7 +439,10 @@ pub fn prove_program(program: &Program) -> Result<(Proof, PublicInputs), String>
 
 /// Verifies `proof` against `pub_inputs`. Requires no knowledge of the execution trace.
 pub fn verify_program(proof: Proof, pub_inputs: PublicInputs) -> Result<(), VerifierError> {
-    let acceptable = AcceptableOptions::OptionSet(vec![proof.options().clone()]);
+    // Never derive the verifier's acceptance policy from the untrusted proof.
+    // Accepting proof.options() here would let a prover choose arbitrarily weak
+    // query parameters and have the verifier approve those same parameters.
+    let acceptable = AcceptableOptions::MinConjecturedSecurity(MIN_CONJECTURED_SECURITY_BITS);
     winterfell::verify::<VmAir, Hasher, DefaultRandomCoin<Hasher>, MerkleTree<Hasher>>(
         proof,
         pub_inputs,
@@ -459,6 +472,32 @@ mod tests {
         let (proof, pub_inputs) = prove_program(&sample_program()).unwrap();
         assert_eq!(pub_inputs.result, BaseElement::from(12u64));
         verify_program(proof, pub_inputs).expect("valid proof must verify");
+    }
+
+    #[test]
+    fn verifier_rejects_proofs_below_the_security_floor() {
+        let program = sample_program().padded();
+        let ExecutionTrace { rows, .. } = zkvm_isa::execute(&program);
+        let trace = VmProver::build_trace(&rows);
+        let weak_options = ProofOptions::new(
+            4,
+            8,
+            0,
+            FieldExtension::None,
+            8,
+            31,
+            BatchingMethod::Linear,
+            BatchingMethod::Linear,
+        );
+        let weak_prover = VmProver::new(weak_options);
+        let public_inputs = weak_prover.get_pub_inputs(&trace);
+        let weak_proof = weak_prover.prove(trace).unwrap();
+
+        assert!(proof_security_bits(&weak_proof) < MIN_CONJECTURED_SECURITY_BITS);
+        assert!(
+            verify_program(weak_proof, public_inputs).is_err(),
+            "a proof must not choose its own weaker verifier policy"
+        );
     }
 
     #[test]

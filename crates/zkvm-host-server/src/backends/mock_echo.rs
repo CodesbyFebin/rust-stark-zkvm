@@ -32,6 +32,7 @@ impl ProverBackend for MockEchoBackend {
             public_inputs: serde_json::json!({
                 "note": "mock-echo produces no real public inputs"
             }),
+            security_bits: None,
         })
     }
 
